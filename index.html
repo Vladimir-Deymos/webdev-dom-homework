@@ -10,7 +10,7 @@
 <body>
   <div class="container">
     <ul id="list" class="comments">
-
+      <!-- Список через JS -->
     </ul>
     <div class="add-form">
       <input id="name-input" type="text" class="add-form-name" placeholder="Введите ваше имя" />
@@ -62,13 +62,13 @@
   function renderComments() {
     listElement.innerHTML = comments.map((comment, index) => {
       const classButton = comment.isLiked ? "-active-like" : "";
-      return `<li class="comment">
+      return `<li data-index="${index}" class="comment">
           <div class="comment-header">
             <div>${comment.name}</div>
             <div>${comment.date}</div>
           </div>
           <div class="comment-body">
-            <div class="comment-text">
+            <div class="comment-text" data-index="${index}">
               ${comment.text}
             </div>
           </div>
@@ -82,6 +82,7 @@
     }).join("");
 
     initEventList();
+    reply();
 
   };
 
@@ -102,6 +103,32 @@
     };
   }
 
+  function quote() {
+    const commentTexts = document.querySelectorAll('.comment-text');
+    commentTexts.forEach(textElement => {
+      textElement.addEventListener('click', (event) => {
+        const index = event.target.dataset.index;
+        commentInputElement.value = ' ${commentArray[index].comment}: ${commentArray[index].name}';
+        commentInputElement.focus();
+      });
+    });
+    renderComments();
+
+  }
+
+  function reply() {
+    const commentsForms = document.querySelectorAll(".comment-text");
+
+    for (const commentForm of commentsForms) {
+      commentForm.addEventListener('click', () => {
+        const index = commentForm.dataset.index;
+        // const styleQuote = document.querySelectorAll(".quote");
+        textInputElement.value = `BEGIN_QUOTE ${comments[index].text} : ${comments[index].name} QUOTE_END`;
+        renderComments();
+      })
+    }
+  };
+
 
 
   buttonElement.addEventListener('click', () => {
@@ -115,9 +142,19 @@
 
     comments.push(
       {
-        name: nameInputElement.value,
+        name: nameInputElement.value
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;"),
         date: currentDate,
-        text: textInputElement.value,
+        text: textInputElement.value
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("BEGIN_QUOTE", "<div class='quote'")
+          .replaceAll("QUOTE_END", "</div>"),
         isLiked: false,
         likeCount: 0,
       });

@@ -40,6 +40,7 @@ body {
 
 .comment {
   padding: 48px;
+
 }
 
 .comment-header {
@@ -133,6 +134,13 @@ body {
 
 .add-form-button:hover {
   opacity: 0.9;
+}
+
+.quote {
+  box-sizing: border-box;
+  border: 1px solid radial-gradient(75.42% 75.42% at 50% 42.37%, rgba(53, 53, 53, 0) 22.92%, #7334ea 100%);
+  background: white;
+  color: black;
 }
 
 /*  */
