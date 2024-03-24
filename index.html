@@ -103,18 +103,6 @@
     };
   }
 
-  function quote() {
-    const commentTexts = document.querySelectorAll('.comment-text');
-    commentTexts.forEach(textElement => {
-      textElement.addEventListener('click', (event) => {
-        const index = event.target.dataset.index;
-        commentInputElement.value = ' ${commentArray[index].comment}: ${commentArray[index].name}';
-        commentInputElement.focus();
-      });
-    });
-    renderComments();
-
-  }
 
   function reply() {
     const commentsForms = document.querySelectorAll(".comment-text");
@@ -153,8 +141,8 @@
           .replaceAll("<", "&lt;")
           .replaceAll(">", "&gt;")
           .replaceAll('"', "&quot;")
-          .replaceAll("BEGIN_QUOTE", "<div class='quote'")
-          .replaceAll("QUOTE_END", "</div>"),
+        .replaceAll("BEGIN_QUOTE", "<div class='quote'")
+        .replaceAll("QUOTE_END", "</div>"),
         isLiked: false,
         likeCount: 0,
       });
