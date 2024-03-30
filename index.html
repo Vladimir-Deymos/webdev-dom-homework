@@ -10,7 +10,7 @@
 <body>
   <div class="container">
     <ul id="list" class="comments">
-
+      <!-- Список через JS -->
     </ul>
     <div class="add-form">
       <input id="name-input" type="text" class="add-form-name" placeholder="Введите ваше имя" />
@@ -36,11 +36,24 @@
   const textInputElement = document.querySelector(".add-form-text");
   const buttonElement = document.querySelector(".add-form-button");
 
-
   const listElement = document.getElementById("list")
-  const currentDate = new Date().toLocaleDateString('default', { day: '2-digit', month: '2-digit', year: '2-digit' }) + " " + new Date().toLocaleTimeString().slice(0, -3);
 
-
+  Date.prototype.format = function () {
+    return this
+    .toLocaleDateString('default', { day: '2-digit', month: '2-digit', year: '2-digit' }) + " " + this.toLocaleTimeString().slice(0, -3);
+  }
+  
+  String.prototype.sanitize = function () {
+    return this
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    // .replaceAll("BEGIN_QUOTE", "<div class='quote'>")
+    // .replaceAll("QUOTE_END", "</div>")
+  }
+  
+  
   const comments = [
     {
       name: "Глеб Фокин",
@@ -62,13 +75,13 @@
   function renderComments() {
     listElement.innerHTML = comments.map((comment, index) => {
       const classButton = comment.isLiked ? "-active-like" : "";
-      return `<li class="comment">
+      return `<li data-index="${index}" class="comment">
           <div class="comment-header">
             <div>${comment.name}</div>
             <div>${comment.date}</div>
           </div>
           <div class="comment-body">
-            <div class="comment-text">
+            <div class="comment-text" data-index="${index}">
               ${comment.text}
             </div>
           </div>
@@ -82,6 +95,7 @@
     }).join("");
 
     initEventList();
+    reply();
 
   };
 
@@ -103,6 +117,29 @@
   }
 
 
+  function reply() {
+    const commentsForms = document.querySelectorAll(".comment-text");
+
+    for (const commentForm of commentsForms) {
+      commentForm.addEventListener('click', () => {
+        const index = commentForm.dataset.index;
+        // const styleQuote = document.querySelectorAll(".quote");
+        textInputElement.value = `BEGIN_QUOTE ${comments[index].text} : ${comments[index].name} QUOTE_END`;
+      });
+    };
+  };
+
+  buttonElement.disabled = true;
+  nameInputElement.addEventListener('input', () => {
+    if (nameInputElement.value === '') {
+      buttonElement.disabled = true;
+      return;
+
+    } else {
+      buttonElement.disabled = false;
+    }
+  })
+
 
   buttonElement.addEventListener('click', () => {
     nameInputElement.classList.remove("error");
@@ -115,9 +152,19 @@
 
     comments.push(
       {
-        name: nameInputElement.value,
-        date: currentDate,
-        text: textInputElement.value,
+        name: nameInputElement.value.sanitize(),
+          // .replaceAll("&", "&amp;")
+          // .replaceAll("<", "&lt;")
+          // .replaceAll(">", "&gt;")
+          // .replaceAll('"', "&quot;"),
+        date: new Date().format(),
+        text: textInputElement.value.sanitize()
+          // .replaceAll("&", "&amp;")
+          // .replaceAll("<", "&lt;")
+          // .replaceAll(">", "&gt;")
+          // .replaceAll('"', "&quot;")
+          .replaceAll("BEGIN_QUOTE", "<div class='quote'>")
+          .replaceAll("QUOTE_END", "</div>"),
         isLiked: false,
         likeCount: 0,
       });

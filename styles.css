@@ -40,6 +40,7 @@ body {
 
 .comment {
   padding: 48px;
+
 }
 
 .comment-header {
@@ -133,6 +134,13 @@ body {
 
 .add-form-button:hover {
   opacity: 0.9;
+}
+
+.quote {
+  font-size: 16px;
+  box-sizing: border-box;
+  background: white;
+  color: black;
 }
 
 /*  */
