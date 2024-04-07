@@ -155,7 +155,6 @@
     for (const commentForm of commentsForms) {
       commentForm.addEventListener('click', () => {
         const index = commentForm.dataset.index;
-        // const styleQuote = document.querySelectorAll(".quote");
         textInputElement.value = `BEGIN_QUOTE ${comments[index].text} : ${comments[index].name} QUOTE_END`;
         textInputElement.focus(); 
       });
