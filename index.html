@@ -9,15 +9,19 @@
 
 <body>
   <div class="container">
+    <div id="loading" style="display: none;">Пожалуйста, подождите, загружается комментарий...</div>
     <ul id="list" class="comments">
       <!-- Список через JS -->
     </ul>
+    <div id="loading-message" style="display: none;">Комментарий добавляется</div>
     <div class="add-form">
       <input id="name-input" type="text" class="add-form-name" placeholder="Введите ваше имя" />
       <textarea id="text-input""" type="textarea" class="add-form-text" placeholder="Введите ваш коментарий"
         rows="4"></textarea>
       <div class="add-form-row">
         <button id="add-button" class="add-form-button">Написать</button>
+        <button id="add-button-delete" class="add-form-button-delete">Удалить последний комментарий</button>
+          
       </div>
     </div>
   </div>
@@ -36,41 +40,69 @@
   const textInputElement = document.querySelector(".add-form-text");
   const buttonElement = document.querySelector(".add-form-button");
 
-  const listElement = document.getElementById("list")
+  const listElement = document.getElementById("list");
+
+  buttonElement.disabled = true;
 
   Date.prototype.format = function () {
     return this
-    .toLocaleDateString('default', { day: '2-digit', month: '2-digit', year: '2-digit' }) + " " + this.toLocaleTimeString().slice(0, -3);
+      .toLocaleDateString('default', { day: '2-digit', month: '2-digit', year: '2-digit' }) + " " + this.toLocaleTimeString().slice(0, -3);
   }
-  
+
   String.prototype.sanitize = function () {
     return this
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    // .replaceAll("BEGIN_QUOTE", "<div class='quote'>")
-    // .replaceAll("QUOTE_END", "</div>")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("BEGIN_QUOTE", "<div class='quote'>")
+      .replaceAll("QUOTE_END", "</div>")
   }
-  
-  
-  const comments = [
-    {
-      name: "Глеб Фокин",
-      date: "12.02.22 12:18",
-      text: 'Это будет первый комментарий на этой странице',
-      isLiked: false,
-      likeCount: 3,
-    },
 
-    {
-      name: "Варвара",
-      date: "13.02.22 19:22",
-      text: 'Мне нравится как оформлена эта страница! ❤',
-      isLiked: true,
-      likeCount: 75,
-    },
-  ];
+  function getComments() {
+    const loadingElement = document.getElementById('loading');
+    loadingElement.style.display = 'block';
+    
+    return fetch(
+      'https://wedev-api.sky.pro/api/v1/vladimir-novikov/comments',
+      {
+        method: "GET"
+      }
+    )
+      .then((response) => {
+        return response.json();
+      })
+      .then((responseData) => {
+        const appComments = responseData.comments.map((comment) => {
+          return {
+            name: comment.author.name,
+            date: new Date(comment.date).format(),
+            text: comment.text,
+            likeCount: 0,
+            isLiked: false,
+          };
+        });
+        comments = appComments;
+        renderComments();
+        loadingElement.style.display = 'none';
+            
+      });
+  };
+  getComments();
+
+  function deleteComment() {
+    const buttonDelete = document.querySelectorAll('.add-button-delete');
+    for (let button of buttonDelete) {
+      button.addEventListener('click', (event) => {
+        let id = button.dataset.id;
+        deleteApiComment(id);
+        event.stopPropagation();
+        renderElements();
+      })
+    }
+  };
+  // массив пользователей
+  let comments = [];
 
   function renderComments() {
     listElement.innerHTML = comments.map((comment, index) => {
@@ -98,7 +130,7 @@
     reply();
 
   };
-
+    // функция лайка
   function initEventList() {
     const likeButtonElements = document.querySelectorAll('.like-button');
     for (const likeButtonElement of likeButtonElements) {
@@ -116,18 +148,24 @@
     };
   }
 
-
+// функция ответа на комментарий
   function reply() {
     const commentsForms = document.querySelectorAll(".comment-text");
 
     for (const commentForm of commentsForms) {
       commentForm.addEventListener('click', () => {
         const index = commentForm.dataset.index;
-        // const styleQuote = document.querySelectorAll(".quote");
         textInputElement.value = `BEGIN_QUOTE ${comments[index].text} : ${comments[index].name} QUOTE_END`;
+        textInputElement.focus(); 
       });
     };
   };
+// ввод комментария через "Enter"
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      buttonElement.click();
+    }
+  })
 
   buttonElement.disabled = true;
   nameInputElement.addEventListener('input', () => {
@@ -150,26 +188,24 @@
       return;
     };
 
-    comments.push(
-      {
-        name: nameInputElement.value.sanitize(),
-          // .replaceAll("&", "&amp;")
-          // .replaceAll("<", "&lt;")
-          // .replaceAll(">", "&gt;")
-          // .replaceAll('"', "&quot;"),
-        date: new Date().format(),
-        text: textInputElement.value.sanitize()
-          // .replaceAll("&", "&amp;")
-          // .replaceAll("<", "&lt;")
-          // .replaceAll(">", "&gt;")
-          // .replaceAll('"', "&quot;")
-          .replaceAll("BEGIN_QUOTE", "<div class='quote'>")
-          .replaceAll("QUOTE_END", "</div>"),
-        isLiked: false,
-        likeCount: 0,
-      });
 
-    renderComments();
+
+    const featchPushComment = fetch(
+      'https://wedev-api.sky.pro/api/v1/vladimir-novikov/comments',
+      {
+        method: "POST",
+        body: JSON.stringify({
+
+          text: textInputElement.value.sanitize(),
+          name: nameInputElement.value.sanitize(),
+          // forceError: true,
+
+        }),
+      }).then((response) => {
+      getComments();
+    });
+
+
 
     nameInputElement.value = "";
     textInputElement.value = "";
