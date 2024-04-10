@@ -9,11 +9,12 @@
 
 <body>
   <div class="container">
-    <div id="loading" style="display: none;">Пожалуйста, подождите, загружается комментарий...</div>
+    <div class="preloader">
+      <p>Подождите, комментарии загружаются...</p>
+    </div>
     <ul id="list" class="comments">
       <!-- Список через JS -->
     </ul>
-    <div id="loading-message" style="display: none;">Комментарий добавляется</div>
     <div class="add-form">
       <input id="name-input" type="text" class="add-form-name" placeholder="Введите ваше имя" />
       <textarea id="text-input""" type="textarea" class="add-form-text" placeholder="Введите ваш коментарий"
@@ -21,9 +22,10 @@
       <div class="add-form-row">
         <button id="add-button" class="add-form-button">Написать</button>
         <button id="add-button-delete" class="add-form-button-delete">Удалить последний комментарий</button>
-          
+
       </div>
     </div>
+    <div class="loader"></div>
   </div>
 </body>
 
@@ -39,10 +41,12 @@
   const nameInputElement = document.querySelector(".add-form-name");
   const textInputElement = document.querySelector(".add-form-text");
   const buttonElement = document.querySelector(".add-form-button");
+  const addForm = document.querySelector(".add-form");
+  const loaderComment = document.querySelector(".preloader");
+  const loaderForm = document.querySelector(".loader");
 
   const listElement = document.getElementById("list");
-
-  buttonElement.disabled = true;
+  // buttonElement.disabled = true;
 
   Date.prototype.format = function () {
     return this
@@ -59,10 +63,10 @@
       .replaceAll("QUOTE_END", "</div>")
   }
 
+  let comments = [];
+
   function getComments() {
-    const loadingElement = document.getElementById('loading');
-    loadingElement.style.display = 'block';
-    
+
     return fetch(
       'https://wedev-api.sky.pro/api/v1/vladimir-novikov/comments',
       {
@@ -83,26 +87,26 @@
           };
         });
         comments = appComments;
+        loaderComment.classList.add('hidden');
         renderComments();
-        loadingElement.style.display = 'none';
-            
+
+
       });
   };
   getComments();
 
   function deleteComment() {
-    const buttonDelete = document.querySelectorAll('.add-button-delete');
-    for (let button of buttonDelete) {
-      button.addEventListener('click', (event) => {
-        let id = button.dataset.id;
-        deleteApiComment(id);
+    document.getElementById('add-button-delete')
+      .addEventListener('click', (event) => {
+        comments.pop()
         event.stopPropagation();
-        renderElements();
+        renderComments();
       })
-    }
   };
+
+  deleteComment()
   // массив пользователей
-  let comments = [];
+
 
   function renderComments() {
     listElement.innerHTML = comments.map((comment, index) => {
@@ -130,7 +134,7 @@
     reply();
 
   };
-    // функция лайка
+  // функция лайка
   function initEventList() {
     const likeButtonElements = document.querySelectorAll('.like-button');
     for (const likeButtonElement of likeButtonElements) {
@@ -148,7 +152,7 @@
     };
   }
 
-// функция ответа на комментарий
+  // функция ответа на комментарий
   function reply() {
     const commentsForms = document.querySelectorAll(".comment-text");
 
@@ -156,11 +160,11 @@
       commentForm.addEventListener('click', () => {
         const index = commentForm.dataset.index;
         textInputElement.value = `BEGIN_QUOTE ${comments[index].text} : ${comments[index].name} QUOTE_END`;
-        textInputElement.focus(); 
+        textInputElement.focus();
       });
     };
   };
-// ввод комментария через "Enter"
+  // ввод комментария через "Enter"
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') {
       buttonElement.click();
@@ -187,7 +191,11 @@
       textInputElement.classList.add("error")
       return;
     };
+    addForm.classList.add('hidden');
+    loaderForm.innerText = 'Идет отправка на сервер...'
 
+    // buttonElement.disabled = true;
+    // buttonElement.textContent = 'Комментарии загружаются...';
 
 
     const featchPushComment = fetch(
@@ -198,15 +206,19 @@
 
           text: textInputElement.value.sanitize(),
           name: nameInputElement.value.sanitize(),
-          // forceError: true,
+          forceError: true,
 
         }),
       }).then((response) => {
-      getComments();
-    });
+        // buttonElement.disabled = false;
+        // buttonElement.textContent = 'Написать';
+        addForm.classList.remove('hidden');
+        loaderForm.innerText = ''
+      });
 
+    getComments();
 
-
+      
     nameInputElement.value = "";
     textInputElement.value = "";
   });
