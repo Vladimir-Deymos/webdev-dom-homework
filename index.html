@@ -74,7 +74,12 @@
       }
     )
       .then((response) => {
-        return response.json();
+        if (response.status === 500) {
+          throw new Error("Сервер упал");
+        }
+        if (response.status === 200) {
+          return response.json();
+        }
       })
       .then((responseData) => {
         const appComments = responseData.comments.map((comment) => {
@@ -89,12 +94,17 @@
         comments = appComments;
         loaderComment.classList.add('hidden');
         renderComments();
-
-
-      });
+      })
+      .catch((error) => {
+        if (error.message === 'Failed to fetch') {
+          alert("Сервер сломался, попробуйте позже");
+        }
+        
+      })
   };
   getComments();
 
+  // удаление последнего комментария
   function deleteComment() {
     document.getElementById('add-button-delete')
       .addEventListener('click', (event) => {
@@ -105,9 +115,9 @@
   };
 
   deleteComment()
+
+
   // массив пользователей
-
-
   function renderComments() {
     listElement.innerHTML = comments.map((comment, index) => {
       const classButton = comment.isLiked ? "-active-like" : "";
@@ -209,21 +219,43 @@
           forceError: true,
 
         }),
-      }).then((response) => {
-        // buttonElement.disabled = false;
-        // buttonElement.textContent = 'Написать';
+      })
+      .then(response => {
         addForm.classList.remove('hidden');
         loaderForm.innerText = ''
-      });
 
-    getComments();
-
-      
-    nameInputElement.value = "";
-    textInputElement.value = "";
+        if (response.status === 500) {
+          throw new Error("Сервер упал");
+        }
+        if (response.status === 400) {
+          throw new Error("Короткие вводимые данные");
+        }
+        if (response.status === 201) {
+          return response.json();
+        }
+      })
+      .then(() => {
+        return getComments();
+      })
+      .then(() => {
+        nameInputElement.value = "";
+        textInputElement.value = "";
+        renderComments();
+      })
+      .catch((error) => {
+        if (error.message === 'Failed to fetch') {
+          alert("Кажется что-то пошло не так, попробуйте позже");
+        };
+        if (error.message === "Сервер упал") {
+          alert('Сервер сломался, попробуйте позже');
+        };
+        if (error.message === "Короткие вводимые данные") {
+          alert('Имя и комментарий должны быть не короче 3х символов');
+        };
+      })
   });
 
-  renderComments();
+
 
 
   console.log("It works!");
