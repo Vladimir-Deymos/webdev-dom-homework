@@ -3,6 +3,7 @@ import { DOM } from "./dom.js";
 export const API = {
   url: "https://wedev-api.sky.pro/api/v1/vladimir-novikov/comments",
 
+  
   getComments() {
   
       return fetch(this.url)

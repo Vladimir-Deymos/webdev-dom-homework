@@ -154,6 +154,7 @@ export const DOM = {
     });
   },
 
+  
   start() {
     this.buttonElement.disabled = true;
     this.emptyString();
